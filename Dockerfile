@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22-slim
 WORKDIR /app
 COPY package*.json ./
 # Install all deps (including wrangler devDep, needed for deploy step)
