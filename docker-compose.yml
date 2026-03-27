@@ -1,0 +1,14 @@
+services:
+  foyer-generator:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./output-corpi:/app/output-corpi
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

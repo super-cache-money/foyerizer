@@ -86,7 +86,7 @@
   .app-body { flex: 1; display: flex; overflow: hidden; }
 
   /* TOC Sidebar */
-  #toc-sidebar { width: 280px; min-width: 220px; max-width: 320px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 24px 16px; background: var(--surface); font-family: 'Outfit', sans-serif; }
+  #toc-sidebar { width: 320px; min-width: 240px; max-width: 400px; flex-shrink: 0; border-right: 1px solid var(--border); overflow-y: auto; padding: 24px 16px; background: var(--surface); font-family: 'Outfit', sans-serif; }
   #toc-sidebar h3 { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-bottom: 14px; padding-left: 4px; }
   #toc-sidebar ul { list-style: none; padding-left: 0; }
   #toc-sidebar li { padding-left: 0; }
@@ -96,6 +96,8 @@
   #toc-sidebar details > summary { list-style: none; cursor: pointer; padding: 4px 6px; border-radius: 6px; color: var(--muted); font-size: 0.8rem; line-height: 1.45; transition: color 0.12s, background 0.12s; }
   #toc-sidebar details > summary:hover { color: var(--text); background: var(--bg); }
   #toc-sidebar details > summary::marker, #toc-sidebar details > summary::-webkit-details-marker { display: none; }
+  #toc-sidebar details > summary::before { content: '▶'; display: inline-block; margin-right: 5px; font-size: 0.55rem; opacity: 0.5; transition: transform 0.15s; vertical-align: middle; }
+  #toc-sidebar details[open] > summary::before { transform: rotate(90deg); }
   #toc-sidebar details[open] > summary { color: var(--text); }
 
   /* TOC mobile toggle */

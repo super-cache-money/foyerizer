@@ -1,0 +1,10 @@
+node_modules/
+output-corpi/
+temp/
+.env
+.wrangler/
+foyer-server/.wrangler/
+foyer-server/src/data.js
+foyer-server/wrangler.toml
+foyer-generator/uploads/
+.git/

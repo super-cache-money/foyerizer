@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "node foyer.setup.js dev ${CONFIG:-foyer.config.yaml}",
-    "deploy": "node foyer.setup.js deploy ${CONFIG:-foyer.config.yaml}"
+    "dev": "node foyer.setup.js dev ${CONFIG:-default.config.yaml}",
+    "deploy": "node foyer.setup.js deploy ${CONFIG:-default.config.yaml}",
+    "generator": "node foyer-generator.js"
   },
   "keywords": [],
   "author": "",
@@ -12,9 +13,12 @@
   "description": "",
   "type": "module",
   "dependencies": {
+    "adm-zip": "^0.5.16",
     "dom-to-semantic-markdown": "^1.5.0",
+    "express": "^5.2.1",
     "js-yaml": "^4.1.1",
     "jsdom": "^29.0.1",
+    "multer": "^2.1.1",
     "playwright": "^1.58.2"
   },
   "devDependencies": {

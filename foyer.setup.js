@@ -1,5 +1,5 @@
 /**
- * Reads config, embeds corpus data, writes worker/src/data.js and worker/wrangler.toml.
+ * Reads config, embeds corpus data, writes foyer-server/src/data.js and foyer-server/wrangler.toml.
  *
  * Run directly:
  *   node foyer.setup.js dev [config.yaml]
@@ -23,7 +23,7 @@ if (fs.existsSync(envPath)) {
 }
 
 export function setup(configArg) {
-  const configPath = path.resolve(configArg ?? 'foyer.config.yaml');
+  const configPath = path.resolve(configArg ?? 'default.config.yaml');
   const config = yaml.load(fs.readFileSync(configPath, 'utf-8'));
   const { title, model, prompt: promptTemplate, corpusDir, password } = config;
 
@@ -51,7 +51,7 @@ export function setup(configArg) {
   console.log(`→ Corpus: ${Math.round(corpus.length / 1024)}KB | TOC: ${Math.round(toc.length / 1024)}KB | ${funFacts.length} fun facts | ${exampleQuestions.length} example questions`);
   console.log(`→ Last updated: ${lastUpdated}`);
 
-  const workerDir = path.join(__dirname, 'worker');
+  const workerDir = path.join(__dirname, 'foyer-server');
 
   const dataJs = `// Auto-generated — do not edit
 export const corpus = ${JSON.stringify(corpus)};
@@ -62,7 +62,7 @@ export const prompt = ${JSON.stringify(promptTemplate)};
 export const lastUpdated = ${JSON.stringify(lastUpdated)};
 `;
   fs.writeFileSync(path.join(workerDir, 'src', 'data.js'), dataJs, 'utf-8');
-  console.log(`→ Wrote worker/src/data.js (${Math.round(dataJs.length / 1024)}KB)`);
+  console.log(`→ Wrote foyer-server/src/data.js (${Math.round(dataJs.length / 1024)}KB)`);
 
   const apiKey = process.env.OPENAI_API_KEY ?? '';
   if (!apiKey) console.warn('⚠  OPENAI_API_KEY not found in .env');
@@ -80,7 +80,7 @@ OPENROUTER_API_KEY = "${apiKey}"
 LAST_UPDATED = "${lastUpdated}"
 `;
   fs.writeFileSync(path.join(workerDir, 'wrangler.toml'), wranglerToml, 'utf-8');
-  console.log(`→ Wrote worker/wrangler.toml`);
+  console.log(`→ Wrote foyer-server/wrangler.toml`);
 
   return { workerDir };
 }

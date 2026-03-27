@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>foyer generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf9f7;
+      --text: #0f0e0c;
+      --muted: #6b6760;
+      --accent: #1a1815;
+      --border: #e5e3df;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Auth */
+    #auth-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .auth-box {
+      background: white; border: 1px solid var(--border); border-radius: 12px;
+      padding: 40px; width: 100%; max-width: 360px;
+    }
+    .auth-box h1 { font-family: 'EB Garamond', serif; font-size: 1.6rem; margin-bottom: 8px; }
+    .auth-box p { color: var(--muted); font-size: 0.875rem; margin-bottom: 24px; }
+
+    /* Wizard */
+    #wizard { display: none; max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+    #wizard h1 { font-family: 'EB Garamond', serif; font-size: 2rem; margin-bottom: 6px; }
+    .subtitle { color: var(--muted); font-size: 0.875rem; margin-bottom: 40px; }
+
+    /* Form */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
+    .field label {
+      font-size: 0.75rem; font-weight: 500; color: var(--muted);
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .field input, .field textarea {
+      font-family: 'Outfit', sans-serif; font-size: 0.9375rem;
+      background: white; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 10px 12px; color: var(--text); outline: none; transition: border-color 0.15s;
+    }
+    .field input:focus, .field textarea:focus { border-color: var(--accent); }
+    .field textarea { resize: vertical; min-height: 148px; font-size: 0.8125rem; line-height: 1.55; }
+
+    /* Dropzone */
+    #dropzone {
+      border: 2px dashed var(--border); border-radius: var(--radius);
+      padding: 36px 20px; text-align: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      color: var(--muted); font-size: 0.875rem;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      margin-bottom: 18px;
+    }
+    #dropzone:hover, #dropzone.dragover { border-color: var(--accent); background: #f5f4f2; }
+    #dropzone.has-file { border-color: #4a9966; background: #f0faf4; color: #2d6b45; border-style: solid; }
+    #dropzone svg { width: 28px; height: 28px; opacity: 0.35; }
+    #dropzone.has-file svg { opacity: 0.7; }
+    .drop-filename { font-weight: 500; font-size: 0.9375rem; }
+    #file-input { display: none; }
+
+    .checkbox-field {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 24px;
+      cursor: pointer; font-size: 0.9rem; color: var(--muted);
+    }
+    .checkbox-field input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
+    /* Buttons */
+    .btn {
+      font-family: 'Outfit', sans-serif; font-size: 0.9375rem; font-weight: 500;
+      padding: 11px 24px; border-radius: var(--radius); border: none;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:not(:disabled):hover { opacity: 0.82; }
+    .btn-secondary { background: transparent; border: 1px solid var(--border); color: var(--text); }
+    .btn-secondary:hover { border-color: var(--accent); }
+
+    /* Log terminal */
+    #log-section { display: none; }
+    #log-section h2 { font-family: 'EB Garamond', serif; font-size: 1.5rem; margin-bottom: 16px; }
+    #log-terminal {
+      background: #0f0e0c; color: #c8c4bc;
+      font-family: 'SF Mono', 'Monaco', 'Menlo', 'Consolas', monospace;
+      font-size: 0.8rem; line-height: 1.65;
+      padding: 20px 22px; border-radius: var(--radius);
+      height: 540px; overflow-y: auto;
+      white-space: pre-wrap; word-break: break-all;
+    }
+
+    /* Done/error banners */
+    #done-banner {
+      display: none; margin-top: 20px;
+      background: #f0faf4; border: 1px solid #4a9966;
+      border-radius: var(--radius); padding: 20px 24px;
+    }
+    #done-banner h3 { color: #2d6b45; font-size: 1rem; margin-bottom: 8px; }
+    #done-url { font-size: 0.9375rem; }
+    #done-url a { color: #2d6b45; font-weight: 500; }
+    .done-actions { margin-top: 16px; }
+    #error-banner {
+      display: none; margin-top: 20px;
+      background: #fdf0f0; border: 1px solid #c94a4a;
+      border-radius: var(--radius); padding: 20px 24px;
+      color: #8b2020; font-size: 0.9375rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Auth screen -->
+<div id="auth-screen">
+  <div class="auth-box">
+    <h1>foyer generator</h1>
+    <p>Enter the generator secret to continue.</p>
+    <div class="field">
+      <label>Secret</label>
+      <input type="password" id="secret-input" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary" id="login-btn" style="width:100%">Enter</button>
+    <p id="auth-error" style="color:#c94a4a;font-size:0.8125rem;margin-top:10px;display:none">Wrong secret.</p>
+  </div>
+</div>
+
+<!-- Wizard -->
+<div id="wizard">
+  <h1>foyer generator</h1>
+  <p class="subtitle">Upload a Notion export, configure, and deploy a new foyer.</p>
+
+  <!-- Form -->
+  <div id="form-section">
+    <div class="form-grid">
+      <!-- Left col: config -->
+      <div>
+        <div class="field">
+          <label>Title</label>
+          <input type="text" id="f-title" placeholder="e.g. Acme Product Strategy">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="text" id="f-password" placeholder="foyer access password">
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <input type="text" id="f-model">
+        </div>
+        <label class="checkbox-field">
+          <input type="checkbox" id="f-summarise">
+          Summarise corpus (slower, uses more tokens)
+        </label>
+        <button class="btn btn-primary" id="generate-btn" disabled>Generate &amp; Deploy</button>
+      </div>
+
+      <!-- Right col: zip + prompt -->
+      <div>
+        <div class="field">
+          <label>Notion Export Zip</label>
+          <div id="dropzone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+            </svg>
+            <span class="drop-filename">Drop .zip here or click to browse</span>
+          </div>
+          <input type="file" id="file-input" accept=".zip">
+        </div>
+        <div class="field">
+          <label>Prompt template</label>
+          <textarea id="f-prompt"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log terminal -->
+  <div id="log-section">
+    <h2 id="log-heading">Generating...</h2>
+    <div id="log-terminal"></div>
+    <div id="done-banner">
+      <h3>Deployed</h3>
+      <div id="done-url"></div>
+      <div class="done-actions">
+        <button class="btn btn-secondary" id="new-btn">Generate another</button>
+      </div>
+    </div>
+    <div id="error-banner"></div>
+  </div>
+</div>
+
+<script>
+  function hasCookie() {
+    return document.cookie.split(';').some(c => c.trim().startsWith('fg_secret='));
+  }
+
+  function showAuth() {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('wizard').style.display = 'none';
+  }
+
+  async function showWizard() {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('wizard').style.display = 'block';
+    try {
+      const res = await fetch('/api/defaults');
+      if (res.ok) {
+        const d = await res.json();
+        document.getElementById('f-model').value = d.model || '';
+        document.getElementById('f-prompt').value = d.prompt || '';
+      }
+    } catch (_) {}
+  }
+
+  if (hasCookie()) showWizard(); else showAuth();
+
+  // Login
+  const loginBtn = document.getElementById('login-btn');
+  const secretInput = document.getElementById('secret-input');
+
+  async function doLogin() {
+    const secret = secretInput.value.trim();
+    if (!secret) return;
+    loginBtn.disabled = true;
+    const res = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ secret }),
+    });
+    loginBtn.disabled = false;
+    if (res.ok) { showWizard(); }
+    else { document.getElementById('auth-error').style.display = 'block'; }
+  }
+
+  loginBtn.addEventListener('click', doLogin);
+  secretInput.addEventListener('keydown', e => e.key === 'Enter' && doLogin());
+
+  // Dropzone
+  let zipFile = null;
+  const dropzone = document.getElementById('dropzone');
+  const fileInput = document.getElementById('file-input');
+  const filenameEl = dropzone.querySelector('.drop-filename');
+
+  function setZipFile(file) {
+    zipFile = file;
+    dropzone.classList.add('has-file');
+    filenameEl.textContent = file.name;
+    checkReady();
+  }
+
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) setZipFile(fileInput.files[0]); });
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) setZipFile(e.dataTransfer.files[0]);
+  });
+
+  // Form validation
+  const titleInput = document.getElementById('f-title');
+  const passwordInput = document.getElementById('f-password');
+  const generateBtn = document.getElementById('generate-btn');
+
+  function checkReady() {
+    generateBtn.disabled = !(titleInput.value.trim() && passwordInput.value.trim() && zipFile);
+  }
+  titleInput.addEventListener('input', checkReady);
+  passwordInput.addEventListener('input', checkReady);
+
+  // Generate
+  generateBtn.addEventListener('click', async () => {
+    const formData = new FormData();
+    formData.append('zip', zipFile);
+    formData.append('title', titleInput.value.trim());
+    formData.append('password', passwordInput.value.trim());
+    formData.append('model', document.getElementById('f-model').value.trim());
+    formData.append('prompt', document.getElementById('f-prompt').value);
+    formData.append('summarise', document.getElementById('f-summarise').checked ? 'true' : 'false');
+
+    document.getElementById('form-section').style.display = 'none';
+    const logSection = document.getElementById('log-section');
+    logSection.style.display = 'block';
+    document.getElementById('log-heading').textContent = 'Generating...';
+    const terminal = document.getElementById('log-terminal');
+    terminal.textContent = '';
+    document.getElementById('done-banner').style.display = 'none';
+    document.getElementById('error-banner').style.display = 'none';
+
+    function appendLog(text) {
+      terminal.textContent += text + '\n';
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    try {
+      const response = await fetch('/api/generate', { method: 'POST', body: formData });
+      if (!response.ok) {
+        appendLog('Error ' + response.status + ': ' + await response.text());
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop();
+
+        for (const part of parts) {
+          const trimmed = part.trim();
+          if (!trimmed || trimmed.startsWith(':')) continue; // keep-alive
+
+          const lines = trimmed.split('\n');
+          let eventName = 'message';
+          let data = '';
+          for (const line of lines) {
+            if (line.startsWith('event: ')) eventName = line.slice(7).trim();
+            else if (line.startsWith('data: ')) data = line.slice(6);
+          }
+          if (!data) continue;
+
+          if (eventName === 'done') {
+            const payload = JSON.parse(data);
+            document.getElementById('log-heading').textContent = 'Done';
+            const banner = document.getElementById('done-banner');
+            banner.style.display = 'block';
+            const urlEl = document.getElementById('done-url');
+            if (payload.url) {
+              urlEl.innerHTML = 'Deployed to <a href="' + payload.url + '" target="_blank">' + payload.url + '</a>';
+            } else {
+              urlEl.textContent = 'Deploy complete — check logs above for the URL.';
+            }
+          } else if (eventName === 'error') {
+            document.getElementById('log-heading').textContent = 'Failed';
+            const errBanner = document.getElementById('error-banner');
+            errBanner.style.display = 'block';
+            errBanner.textContent = JSON.parse(data).message;
+          } else {
+            appendLog(data);
+          }
+        }
+      }
+    } catch (err) {
+      appendLog('Connection error: ' + err.message);
+    }
+  });
+
+  // Start over
+  document.getElementById('new-btn').addEventListener('click', () => {
+    zipFile = null;
+    dropzone.classList.remove('has-file');
+    filenameEl.textContent = 'Drop .zip here or click to browse';
+    fileInput.value = '';
+    titleInput.value = '';
+    passwordInput.value = '';
+    generateBtn.disabled = true;
+    document.getElementById('log-section').style.display = 'none';
+    document.getElementById('form-section').style.display = 'block';
+  });
+</script>
+</body>
+</html>
