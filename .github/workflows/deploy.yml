@@ -12,7 +12,7 @@ jobs:
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.SERVER_HOST }}
-          username: root
+          username: arjun
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             cd /home/arjun/foyerizer
