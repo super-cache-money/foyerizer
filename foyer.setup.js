@@ -1,6 +1,9 @@
 /**
- * Shared setup logic for deployFoyer.js and devFoyer.js.
  * Reads config, embeds corpus data, writes worker/src/data.js and worker/wrangler.toml.
+ *
+ * Run directly:
+ *   node foyer.setup.js dev [config.yaml]
+ *   node foyer.setup.js deploy [config.yaml]
  */
 import fs from 'fs';
 import path from 'path';
@@ -67,6 +70,7 @@ export const lastUpdated = ${JSON.stringify(lastUpdated)};
   const wranglerToml = `name = "${workerName}"
 main = "src/index.js"
 compatibility_date = "2024-09-23"
+assets = { directory = "./public" }
 
 [vars]
 TITLE = "${title.replace(/"/g, '\\"')}"
@@ -78,10 +82,22 @@ LAST_UPDATED = "${lastUpdated}"
   fs.writeFileSync(path.join(workerDir, 'wrangler.toml'), wranglerToml, 'utf-8');
   console.log(`→ Wrote worker/wrangler.toml`);
 
-  if (!fs.existsSync(path.join(workerDir, 'node_modules'))) {
-    console.log('→ Installing wrangler...');
-    execSync('npm install', { cwd: workerDir, stdio: 'inherit' });
-  }
-
   return { workerDir };
+}
+
+// CLI entry point
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const [mode, configArg] = process.argv.slice(2);
+  const { workerDir } = setup(configArg);
+  const wranglerConfig = path.join(workerDir, 'wrangler.toml');
+  if (mode === 'dev') {
+    console.log('→ Starting dev server...\n');
+    execSync(`npx wrangler dev --config ${wranglerConfig}`, { cwd: __dirname, stdio: 'inherit' });
+  } else if (mode === 'deploy') {
+    console.log('→ Deploying...\n');
+    execSync(`npx wrangler deploy --config ${wranglerConfig}`, { cwd: __dirname, stdio: 'inherit' });
+  } else {
+    console.error('Usage: node foyer.setup.js [dev|deploy] [config.yaml]');
+    process.exit(1);
+  }
 }
