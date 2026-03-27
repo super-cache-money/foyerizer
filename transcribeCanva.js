@@ -99,57 +99,65 @@ export async function captureCanva(canvaUrl, { transcribe = true, outputDir } = 
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1100 } });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1600, height: 1100 } });
 
-  console.error(`Loading: ${canvaUrl}`);
-  await page.goto(canvaUrl);
-  await page.waitForLoadState("networkidle");
-  await page.waitForTimeout(3000);
+    console.error(`Loading: ${canvaUrl}`);
+    await page.goto(canvaUrl);
+    await page.waitForLoadState("networkidle");
+    await page.waitForTimeout(3000);
 
-  const counterText = await page
-    .locator("button[aria-label='Go to page']")
-    .textContent({ timeout: 10000 });
-  const total = parseInt(counterText.split("/")[1].trim(), 10);
-  console.error(`Total slides: ${total}`);
+    const counterText = await page
+      .locator("button[aria-label='Go to page']")
+      .textContent({ timeout: 10000 });
+    const total = parseInt(counterText.split("/")[1].trim(), 10);
+    console.error(`Total slides: ${total}`);
 
-  const nextBtn = page.locator("button[aria-label='Next page']");
+    const nextBtn = page.locator("button[aria-label='Next page']");
 
-  let clip = await page.evaluate(FIND_SLIDE_JS);
-  if (clip) {
-    console.error(
-      `Detected slide area: x=${clip.x.toFixed(0)} y=${clip.y.toFixed(0)} ` +
-        `w=${clip.width.toFixed(0)} h=${clip.height.toFixed(0)}`
-    );
-  } else {
-    console.error("Warning: could not detect slide bounds, falling back to full viewport");
-    clip = { x: 0, y: 55, width: 1600, height: 990 };
-  }
-
-  const slides = [];
-
-  for (let i = 0; i < total; i++) {
-    const slideNum = i + 1;
-    const outPath = path.join(OUTPUT_DIR, `slide_${String(slideNum).padStart(3, "0")}.png`);
-
-    await page.screenshot({ path: outPath, clip });
-    console.error(`  Captured slide ${slideNum}/${total} → ${outPath}`);
-
-    if (transcribe) {
-      console.error(`  Transcribing slide ${slideNum}...`);
-      const text = await transcribeSlide(outPath);
-      slides.push({ url: `${canvaUrl}#${slideNum}`, text });
+    let clip = await page.evaluate(FIND_SLIDE_JS);
+    if (clip) {
+      console.error(
+        `Detected slide area: x=${clip.x.toFixed(0)} y=${clip.y.toFixed(0)} ` +
+          `w=${clip.width.toFixed(0)} h=${clip.height.toFixed(0)}`
+      );
+    } else {
+      console.error("Warning: could not detect slide bounds, falling back to full viewport");
+      clip = { x: 0, y: 55, width: 1600, height: 990 };
     }
 
-    if (slideNum < total) {
-      await nextBtn.click();
-      await page.waitForTimeout(1200);
+    const captured = [];
+
+    for (let i = 0; i < total; i++) {
+      const slideNum = i + 1;
+      const outPath = path.join(OUTPUT_DIR, `slide_${String(slideNum).padStart(3, "0")}.png`);
+
+      await page.screenshot({ path: outPath, clip });
+      console.error(`  Captured slide ${slideNum}/${total} → ${outPath}`);
+      captured.push({ slideNum, outPath });
+
+      if (slideNum < total) {
+        await nextBtn.click();
+        await page.waitForTimeout(1000);
+      }
     }
+
+    console.error(`\nAll slides captured. ${transcribe ? 'Transcribing in parallel...' : ''}`);
+
+    const slides = transcribe
+      ? await Promise.all(captured.map(async ({ slideNum, outPath }) => {
+          console.error(`  Transcribing slide ${slideNum}...`);
+          const text = await transcribeSlide(outPath);
+          console.error(`  ✓ Slide ${slideNum} transcribed`);
+          return { url: `${canvaUrl}#${slideNum}`, text };
+        }))
+      : [];
+
+    console.error(`Done. ${total} slides saved to ${OUTPUT_DIR}/`);
+    return slides;
+  } finally {
+    await browser.close();
   }
-
-  await browser.close();
-  console.error(`\nDone. ${total} slides saved to ${OUTPUT_DIR}/`);
-
-  return slides;
 }
 
 // CLI entry point

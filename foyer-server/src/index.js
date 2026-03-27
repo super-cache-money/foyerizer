@@ -59,6 +59,12 @@ export default {
       const fullPrompt = buildPrompt(question, promptOverride);
       const model = (modelOverride && modelOverride.trim()) ? modelOverride.trim() : env.MODEL;
 
+      function logUsage(label, model, usage) {
+        if (!usage) return;
+        const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0 } = usage;
+        console.log(`[cost] ${label} | model=${model} | prompt=${prompt_tokens} completion=${completion_tokens} total=${total_tokens} tokens`);
+      }
+
       async function callLLM() {
         const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
@@ -67,15 +73,17 @@ export default {
         });
         if (!resp.ok) throw new Error(await resp.text());
         const data = await resp.json();
+        logUsage('main', model, data.usage);
         return data.choices?.[0]?.message?.content ?? '';
       }
 
       async function isGibberish(text) {
+        const gibModel = 'openai/gpt-5-mini';
         const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
           headers: { Authorization: `Bearer ${env.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'openai/gpt-5-mini',
+            model: gibModel,
             stream: false,
             messages: [{
               role: 'user',
@@ -85,6 +93,7 @@ export default {
         });
         if (!resp.ok) return false;
         const data = await resp.json();
+        logUsage('gibberish-check', gibModel, data.usage);
         const verdict = (data.choices?.[0]?.message?.content ?? '').trim().toUpperCase();
         console.log('Gibberish check verdict:', verdict);
         return verdict.startsWith('YES');
