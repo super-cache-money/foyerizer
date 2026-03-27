@@ -2,7 +2,7 @@ FROM node:22-alpine
 WORKDIR /app
 COPY package*.json ./
 # Install all deps (including wrangler devDep, needed for deploy step)
-RUN npm ci
+RUN npm ci && npx playwright install --with-deps chromium
 COPY . .
 RUN chown -R node:node /app
 USER node
