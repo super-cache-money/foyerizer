@@ -34,8 +34,11 @@
     .subtitle { color: var(--muted); font-size: 0.875rem; margin-bottom: 40px; }
 
     /* Form */
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; }
     @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-col-right { display: flex; flex-direction: column; }
+    .form-col-right .field.field-grow { flex: 1; display: flex; flex-direction: column; margin-bottom: 0; }
+    .form-col-right .field.field-grow textarea { flex: 1; min-height: 360px; }
 
     .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; }
     .field label {
@@ -138,7 +141,15 @@
   <!-- Form -->
   <div id="form-section">
     <div class="form-grid">
-      <!-- Left col: config -->
+      <!-- Left col: prompt template -->
+      <div class="form-col-right">
+        <div class="field field-grow">
+          <label>Prompt template</label>
+          <textarea id="f-prompt"></textarea>
+        </div>
+      </div>
+
+      <!-- Right col: config + zip -->
       <div>
         <div class="field">
           <label>Title</label>
@@ -152,15 +163,6 @@
           <label>Model</label>
           <input type="text" id="f-model">
         </div>
-        <label class="checkbox-field">
-          <input type="checkbox" id="f-summarise">
-          Summarise corpus (slower, uses more tokens)
-        </label>
-        <button class="btn btn-primary" id="generate-btn" disabled>Generate &amp; Deploy</button>
-      </div>
-
-      <!-- Right col: zip + prompt -->
-      <div>
         <div class="field">
           <label>Notion Export Zip</label>
           <div id="dropzone">
@@ -172,10 +174,11 @@
           </div>
           <input type="file" id="file-input" accept=".zip">
         </div>
-        <div class="field">
-          <label>Prompt template</label>
-          <textarea id="f-prompt"></textarea>
-        </div>
+        <label class="checkbox-field">
+          <input type="checkbox" id="f-summarise">
+          Summarise corpus (slower, uses more tokens)
+        </label>
+        <button class="btn btn-primary" id="generate-btn" disabled style="display:block;margin-left:auto">Generate &amp; Deploy</button>
       </div>
     </div>
   </div>

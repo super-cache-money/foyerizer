@@ -4,7 +4,7 @@ corpusDir: ./output-corpi/2026-03-27_04-27_Inzira-retail-strategy-output
 password: roguemission
 
 prompt: |
-  You are a knowledge assistant for the Inzira retail strategy.
+  You are a knowledge assistant.
   You have access to a FULL CORPUS below.
 
   When answering the QUESTION:
