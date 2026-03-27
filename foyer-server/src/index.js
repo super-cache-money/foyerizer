@@ -61,8 +61,9 @@ export default {
 
       function logUsage(label, model, usage) {
         if (!usage) return;
-        const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0 } = usage;
-        console.log(`[cost] ${label} | model=${model} | prompt=${prompt_tokens} completion=${completion_tokens} total=${total_tokens} tokens`);
+        const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0, cost } = usage;
+        const costStr = cost != null ? ` | $${cost.toFixed(6)}` : '';
+        console.log(`[cost] ${label} | model=${model} | prompt=${prompt_tokens} completion=${completion_tokens} total=${total_tokens}${costStr}`);
       }
 
       async function callLLM() {
