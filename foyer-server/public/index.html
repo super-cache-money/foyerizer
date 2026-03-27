@@ -437,10 +437,16 @@ async function doAsk() {
       const { done, value } = await reader.read();
       if (done) break;
       const chunk = decoder.decode(value, { stream: true });
+      let eventName = 'message';
       for (const line of chunk.split('\n')) {
-        if (!line.startsWith('data: ')) continue;
+        if (line.startsWith('event: ')) { eventName = line.slice(7).trim(); continue; }
+        if (!line.startsWith('data: ')) { if (!line.trim()) eventName = 'message'; continue; }
         const data = line.slice(6);
         if (data === '[DONE]') continue;
+        if (eventName === 'cost') {
+          try { console.log(`[cost] $${JSON.parse(data).cost.toFixed(6)}`); } catch {}
+          continue;
+        }
         try {
           const token = JSON.parse(data).choices?.[0]?.delta?.content ?? '';
           if (!token) continue;

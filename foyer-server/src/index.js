@@ -59,11 +59,13 @@ export default {
       const fullPrompt = buildPrompt(question, promptOverride);
       const model = (modelOverride && modelOverride.trim()) ? modelOverride.trim() : env.MODEL;
 
+      let totalCost = 0;
+
       function logUsage(label, model, usage) {
         if (!usage) return;
-        const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0, cost } = usage;
-        const costStr = cost != null ? ` | $${cost.toFixed(6)}` : '';
-        console.log(`[cost] ${label} | model=${model} | prompt=${prompt_tokens} completion=${completion_tokens} total=${total_tokens}${costStr}`);
+        const { prompt_tokens = 0, completion_tokens = 0, total_tokens = 0, cost = 0 } = usage;
+        totalCost += cost;
+        console.log(`[cost] ${label} | model=${model} | prompt=${prompt_tokens} completion=${completion_tokens} total=${total_tokens} | $${cost.toFixed(6)}`);
       }
 
       async function callLLM() {
@@ -127,6 +129,7 @@ export default {
           ));
         }
         await writer.write(encoder.encode('data: [DONE]\n\n'));
+        await writer.write(encoder.encode(`event: cost\ndata: ${JSON.stringify({ cost: totalCost })}\n\n`));
         writer.close();
       })();
 
