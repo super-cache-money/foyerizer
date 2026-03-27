@@ -1,0 +1,9 @@
+worker/wrangler.toml
+worker/src/data.js
+worker/node_modules/
+node_modules/
+output-corpi/
+temp/
+.env
+.DS_Store
+worker/.wrangler/
