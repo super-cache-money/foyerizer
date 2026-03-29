@@ -1,4 +1,4 @@
-import { corpus, toc, funFacts, exampleQuestions, prompt as promptTemplate, lastUpdated } from './data.js';
+import { title as foyerTitle, corpus, toc, funFacts, exampleQuestions, prompt as promptTemplate, lastUpdated } from './data.js';
 
 function getCookie(request, name) {
   const header = request.headers.get('Cookie') || '';
@@ -42,7 +42,7 @@ export default {
       if (!isAuthed(request, env)) return new Response(null, { status: 401 });
       const lastUpdatedStr = new Date(lastUpdated).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
       return new Response(JSON.stringify({
-        title: env.TITLE,
+        title: foyerTitle,
         lastUpdated: lastUpdatedStr,
         facts: funFacts,
         exampleQuestions,
