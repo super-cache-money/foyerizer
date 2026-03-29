@@ -54,6 +54,7 @@ export function setup(configArg) {
   const workerDir = path.join(__dirname, 'foyer-server');
 
   const dataJs = `// Auto-generated — do not edit
+export const title = ${JSON.stringify(title)};
 export const corpus = ${JSON.stringify(corpus)};
 export const toc = ${JSON.stringify(toc)};
 export const funFacts = ${JSON.stringify(funFacts)};
