@@ -84,8 +84,18 @@ function spawnLogged(args, onLog, { captureSilentStdout = false } = {}) {
 
 app.post('/api/generate', requireAuth, upload.single('zip'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'no zip uploaded' });
-  const { title, password, model, prompt, summarise } = req.body;
-  if (!title || !password) return res.status(400).json({ error: 'title and password required' });
+  const title = req.body.title?.trim();
+  const password = req.body.password?.trim();
+  const model = req.body.model?.trim();
+  const prompt = req.body.prompt;
+  const summarise = req.body.summarise;
+
+  const errs = [];
+  if (!title || title.length > 200) errs.push('title must be 1–200 chars');
+  if (!password || password.length > 200) errs.push('password must be 1–200 chars');
+  if (model && !/^[a-zA-Z0-9/._:@-]+$/.test(model)) errs.push('model contains invalid characters');
+  if (prompt && prompt.length > 20000) errs.push('prompt too long (max 20000 chars)');
+  if (errs.length) return res.status(400).json({ error: errs.join('; ') });
 
   // SSE setup
   res.setHeader('Content-Type', 'text/event-stream');

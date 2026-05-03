@@ -68,15 +68,24 @@ export const lastUpdated = ${JSON.stringify(lastUpdated)};
   const apiKey = process.env.OPENAI_API_KEY ?? '';
   if (!apiKey) console.warn('⚠  OPENAI_API_KEY not found in .env');
 
+  function tomlStr(s) {
+    return s
+      .replace(/\\/g, '\\\\')
+      .replace(/"/g, '\\"')
+      .replace(/\r/g, '\\r')
+      .replace(/\n/g, '\\n')
+      .replace(/\t/g, '\\t');
+  }
+
   const wranglerToml = `name = "${workerName}"
 main = "src/index.js"
 compatibility_date = "2024-09-23"
 assets = { directory = "./public" }
 
 [vars]
-TITLE = "${title.replace(/"/g, '\\"')}"
-MODEL = "${model}"
-PASSWORD = "${password.replace(/"/g, '\\"')}"
+TITLE = "${tomlStr(title)}"
+MODEL = "${tomlStr(model)}"
+PASSWORD = "${tomlStr(password)}"
 OPENROUTER_API_KEY = "${apiKey}"
 LAST_UPDATED = "${lastUpdated}"
 `;

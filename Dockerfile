@@ -1,10 +1,8 @@
-FROM node:22-slim
+FROM foyerizer-playwright-base:latest
 WORKDIR /app
 COPY package*.json ./
 # Install all deps (including wrangler devDep, needed for deploy step)
 RUN npm ci
-ENV PLAYWRIGHT_BROWSERS_PATH=/app/.playwright-browsers
-RUN npx playwright install --with-deps chromium
 COPY . .
 RUN chown -R node:node /app
 USER node

@@ -1,6 +1,14 @@
 services:
+  playwright-base:
+    build:
+      context: .
+      dockerfile: Dockerfile.playwright-base
+    image: foyerizer-playwright-base:latest
+
   foyer-generator:
     build: .
+    depends_on:
+      - playwright-base
     restart: unless-stopped
     ports:
       - "127.0.0.1:3001:3001"
